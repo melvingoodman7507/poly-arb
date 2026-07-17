@@ -122,13 +122,32 @@ def _card_html(c: dict) -> str:
 </div>"""
 
 
-def render_bets_page(survivors, all_researched=None, meta=None) -> str:
+def _closest_html(cc: dict) -> str:
+    return f"""
+<div class="card lean" style="border-left-color:#ff5d6c">
+  <span class="tag lean" style="background:rgba(255,93,108,.14);color:#ff5d6c">🔪 TEMPTED — THEN KILLED IT</span>
+  <div class="q">{_esc(cc.get('question',''))}</div>
+  <div class="dir">Looked like: <b>BUY {_esc(cc.get('side','YES'))}</b> at {cc.get('price',0)*100:.0f}¢ ·
+     my first read {cc.get('my_prob',0)*100:.0f}% vs market {cc.get('price',0)*100:.0f}%
+     (<span style='color:#5aa2ff'>{cc.get('edge',0):.0f}pt "edge"</span>)</div>
+  <div class="why" style="color:#ffb3ba"><b>Why I killed it:</b> {_esc(cc.get('why_killed',''))}</div>
+</div>"""
+
+
+def render_bets_page(survivors, all_researched=None, meta=None, closest_calls=None,
+                     markets_checked=0, lesson=None) -> str:
     meta = meta or {}
     ts = meta.get("timestamp", "")
+    cc_html = "".join(_closest_html(c) for c in (closest_calls or []))
+    cc_section = (f"<h2 style='font-size:17px;margin-top:30px'>The ones that <i>tempted</i> me — and why I still said no</h2>"
+                  f"<p class='sub' style='margin-top:0'>This is the important part: apparent edges that fell apart on a hard second look.</p>{cc_html}"
+                  if closest_calls else "")
+    lesson_html = (f"<div class='note'>🧠 <b>The lesson from today.</b> {lesson}</div>" if lesson else "")
     cards_html = "".join(_card_html(c) for c in survivors) if survivors else (
-        "<div class='note'>🔴 <b>No bet worth making right now.</b> I researched the live markets and none "
-        "had an edge big enough to beat the odds + fees. Per the discipline rule (and your guy's own tweet), "
-        "the move today is to <b>skip</b> — a trade you don't lose is money kept. Check back when I refresh.</div>")
+        f"<div class='note'>🔴 <b>No bet worth making right now.</b> I deep-researched "
+        f"{markets_checked or 'the live'} markets and <b>not one</b> had an edge that survived a hard, "
+        f"adversarial double-check. Per the discipline rule (and your guy's own tweet), the move is to "
+        f"<b>skip</b> — a trade you don't lose is money kept.</div>")
 
     skips = ""
     if all_researched:
@@ -163,6 +182,8 @@ the honest answer is <b>don't bet</b>. Only stake what you can afford to lose �
 </div>
 
 {cards_html}
+{lesson_html}
+{cc_section}
 {skips}
 
 <div class=foot>
