@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+poly-arb-report.html
+scratchpad/
+CLAUDE.md

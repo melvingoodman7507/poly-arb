@@ -1,0 +1,7 @@
+# poly-arb needs only the standard library + requests for the read-only scanner.
+requests>=2.25.0
+
+# --- OPTIONAL, only if/when you build the live maker-execution layer later ---
+# py-clob-client-v2      # CLOB V2 signed orders (V1 py-clob-client is rejected by prod)
+# web3>=6                # CTF split/merge/convert + pUSD wrap on Polygon
+# websocket-client       # WSS market/user channels for sub-second requoting

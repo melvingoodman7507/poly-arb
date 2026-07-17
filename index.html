@@ -1,0 +1,77 @@
+<!doctype html><html lang=en><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>poly-arb — live Polymarket maker-arb scanner</title><style>
+:root{--bg:#0b0e14;--card:#131823;--card2:#1a2030;--line:#232b3d;--tx:#e6ebf5;--mut:#8a94a8;
+--grn:#3ddc84;--red:#ff5c6c;--yel:#ffcf5c;--blu:#5c9dff;--acc:#7c5cff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);
+font:14px/1.55 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:18px;margin:34px 0 12px;color:#fff}
+.sub{color:var(--mut);margin:0 0 22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px}
+.kpi .n{font-size:22px;font-weight:700}.kpi .l{color:var(--mut);font-size:12px;margin-top:3px}
+.thesis{background:linear-gradient(135deg,#151b2b,#0f1420);border:1px solid var(--line)}
+.thesis b{color:var(--grn)}.thesis .bad{color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+th,td{padding:9px 11px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{background:var(--card2);color:var(--mut);font-weight:600;position:sticky;top:0;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+td.l,th.l{text-align:left}tr:last-child td{border-bottom:none}
+tr:hover td{background:#161c2b}
+.pos{color:var(--grn)}.neg{color:var(--red)}.mut{color:var(--mut)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+.t3{background:rgba(61,220,132,.15);color:var(--grn)}
+.t2{background:rgba(92,157,255,.15);color:var(--blu)}
+.t1{background:rgba(255,207,92,.13);color:var(--yel)}
+.t0{background:rgba(255,92,108,.13);color:var(--red)}
+.warn{background:rgba(255,207,92,.08);border:1px solid rgba(255,207,92,.3);border-radius:12px;padding:14px 18px}
+.foot{color:var(--mut);font-size:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+code{background:#0d1220;padding:1px 6px;border-radius:5px;color:#b9c4dc;font-size:12px}
+</style></head><body><div class=wrap>
+<h1>poly-arb <span class='mut' style='font-size:15px'>· live Polymarket maker-arb scanner</span></h1>
+<p class=sub>Read-only. No wallet, no funds. Scanned 2026-07-17 18:28 UTC · 9.8s ·
+300 markets, 47 negRisk groups, 2230 order books.</p>
+
+<div class="card thesis">
+<h2 style='margin-top:0'>The whole edge: be the maker, not the taker</h2>
+<p>Polymarket takers pay <code>fee = shares × feeRate × p × (1−p)</code>; makers pay <b>zero</b> and earn a daily rebate.
+So the <i>same</i> price gap flips sign depending on how you execute it. Worked example — a 2¢ gap on a 49/49 crypto market, 100 shares:</p>
+<div class=grid>
+<div class=kpi><div class=n>$2.00</div><div class=l>gross edge (buy YES+NO, merge to $1)</div></div>
+<div class=kpi><div class="n bad">$-1.50</div><div class=l>net as a <b>taker</b> (fees eat it)</div></div>
+<div class=kpi><div class="n" style='color:var(--grn)'>$2.70</div><div class=l>net as a <b>maker</b> (0 fee + rebate)</div></div>
+<div class=kpi><div class=n>$4.20</div><div class=l>maker advantage per 100 sh</div></div>
+</div>
+<p class=mut style='margin-bottom:0'>The catch isn't the math — it's <b>getting both legs filled without adverse selection</b>. That risk is what the paper sim measures.</p>
+</div>
+
+<div class=grid>
+<div class=kpi><div class=n>2</div><div class=l>guaranteed arbs executable now</div></div>
+<div class=kpi><div class=n>37</div><div class=l>complementary maker setups</div></div>
+<div class=kpi><div class=n>35</div><div class=l>prime / good fill quality</div></div>
+</div>
+
+<h2>Guaranteed arbs (executable now)</h2>
+<p class=mut>Gross gap is guaranteed (buy the set, merge to $1). <b>Taker net</b> subtracts the round-trip fee — often negative, which is the whole point: the gap is only worth taking as a maker (0 fee). Rows are ranked by taker net.</p><div class='scroll'><table><thead><tr><th class='l'>Market</th><th>Cat</th><th>Cost/unit</th><th>Gross/unit</th><th>Taker net/unit</th><th>Size</th><th>Taker P&amp;L</th></tr></thead><tbody><tr><td class='l'>[5-way] Fed Decision in September? (buy-all-NO)</td><td>finance</td><td>3.9870</td><td class='pos'>$0.0130</td><td class='neg'>$-0.0079</td><td>3,972</td><td class='neg'>$-31.52</td></tr><tr><td class='l'>[6-way] &quot;The Odyssey&quot; Opening Weekend Box Office (buy-all-NO</td><td>other</td><td>4.9950</td><td class='pos'>$0.0050</td><td class='neg'>$-0.0179</td><td>20</td><td class='neg'>$-0.36</td></tr></tbody></table></div>
+
+<h2>Maker setups — ranked by fill quality × liquidity</h2>
+<div class='scroll'><table><thead><tr><th class='l'>Market</th><th>Cat</th><th>Fill quality</th><th>Cost/pair</th><th>Margin/pair</th><th>Rebate/lot</th><th>Rwd</th><th>Vol 24h</th></tr></thead><tbody><tr><td class='l'>Will the Boston Red Sox hit the most home runs in th</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.973</td><td class='pos'>2.70¢</td><td>$0.02</td><td>✓</td><td>$154,772</td></tr><tr><td class='l'>Will Mjallby AIF win on 2026-07-17?</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.960</td><td class='pos'>4.00¢</td><td>$0.36</td><td>✓</td><td>$70,843</td></tr><tr><td class='l'>Will WTI Crude Oil (WTI) hit (HIGH) $95 in July?</td><td>finance</td><td><span class='pill t2'>good</span></td><td>0.984</td><td class='pos'>1.60¢</td><td>$0.31</td><td>✓</td><td>$135,461</td></tr><tr><td class='l'>Iasi Open: Tamara Zidansek vs Petra Marcinko</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.980</td><td class='pos'>2.00¢</td><td>$0.37</td><td>✓</td><td>$108,629</td></tr><tr><td class='l'>Will the Miami Marlins hit the most home runs in the</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.965</td><td class='pos'>3.50¢</td><td>$0.03</td><td>✓</td><td>$62,278</td></tr><tr><td class='l'>Will the Cleveland Guardians hit the most home runs </td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.967</td><td class='pos'>3.30¢</td><td>$0.03</td><td>✓</td><td>$62,220</td></tr><tr><td class='l'>Will Cal Raleigh win the 2026 American League MVP Aw</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.996</td><td class='pos'>0.40¢</td><td>$0.01</td><td>✓</td><td>$557,894</td></tr><tr><td class='l'>Will the Texas Rangers hit the most home runs in the</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.979</td><td class='pos'>2.10¢</td><td>$0.02</td><td>✓</td><td>$93,096</td></tr><tr><td class='l'>Will Scottie Scheffler win the 2026 The Open Champio</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.970</td><td class='pos'>3.00¢</td><td>$0.20</td><td>✓</td><td>$57,672</td></tr><tr><td class='l'>Will Trump meet with Netanyahu by July 24, 2026?</td><td>other</td><td><span class='pill t2'>good</span></td><td>0.975</td><td class='pos'>2.50¢</td><td>$0.10</td><td>✓</td><td>$53,814</td></tr><tr><td class='l'>Pozoblanco: Tiago Pereira vs Alejo Sanchez Quilez</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.965</td><td class='pos'>3.50¢</td><td>$0.36</td><td>✓</td><td>$34,368</td></tr><tr><td class='l'>Will Apple be the largest company in the world by ma</td><td>other</td><td><span class='pill t2'>good</span></td><td>0.970</td><td class='pos'>3.00¢</td><td>$0.59</td><td>✓</td><td>$38,219</td></tr><tr><td class='l'>Will WTI Crude Oil (WTI) hit (HIGH) $90 in July?</td><td>finance</td><td><span class='pill t2'>good</span></td><td>0.993</td><td class='pos'>0.70¢</td><td>$0.45</td><td>✓</td><td>$132,404</td></tr><tr><td class='l'>Will Russia enter Malokaterynivka by December 31, 20</td><td>other</td><td><span class='pill t2'>good</span></td><td>0.966</td><td class='pos'>3.40¢</td><td>$0.22</td><td>✓</td><td>$33,249</td></tr><tr><td class='l'>Will Iran announce withdrawal from MOU negotiations </td><td>other</td><td><span class='pill t2'>good</span></td><td>0.995</td><td class='pos'>0.50¢</td><td>$0.04</td><td>✓</td><td>$167,075</td></tr><tr><td class='l'>US x Iran Effective Ceasefire by July 18?</td><td>geopolitics</td><td><span class='pill t2'>good</span></td><td>0.993</td><td class='pos'>0.70¢</td><td>$0.00</td><td>✓</td><td>$116,233</td></tr><tr><td class='l'>Will the Houthis successfully target shipping by Jul</td><td>other</td><td><span class='pill t2'>good</span></td><td>0.979</td><td class='pos'>2.10¢</td><td>$0.08</td><td>✓</td><td>$37,437</td></tr><tr><td class='l'>Will Fredrikstad FK win on 2026-07-17?</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.990</td><td class='pos'>1.00¢</td><td>$0.02</td><td>✓</td><td>$71,254</td></tr><tr><td class='l'>Will there be Houthi military action against Israel </td><td>geopolitics</td><td><span class='pill t2'>good</span></td><td>0.986</td><td class='pos'>1.40¢</td><td>$0.00</td><td>✓</td><td>$47,440</td></tr><tr><td class='l'>Will Xi Jinping visit US before 2027?</td><td>other</td><td><span class='pill t2'>good</span></td><td>0.990</td><td class='pos'>1.00¢</td><td>$0.31</td><td>·</td><td>$52,859</td></tr><tr><td class='l'>Will the Toronto Blue Jays hit the most home runs in</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.994</td><td class='pos'>0.60¢</td><td>$0.01</td><td>✓</td><td>$92,534</td></tr><tr><td class='l'>Will Tommy Fleetwood win the 2026 The Open Champions</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.988</td><td class='pos'>1.20¢</td><td>$0.03</td><td>✓</td><td>$44,411</td></tr><tr><td class='l'>Will Apple be the largest company in the world by ma</td><td>other</td><td><span class='pill t2'>good</span></td><td>0.990</td><td class='pos'>1.00¢</td><td>$0.50</td><td>✓</td><td>$42,998</td></tr><tr><td class='l'>Will the Houthis successfully target shipping by Jul</td><td>other</td><td><span class='pill t2'>good</span></td><td>0.990</td><td class='pos'>1.00¢</td><td>$0.62</td><td>✓</td><td>$37,971</td></tr><tr><td class='l'>Will LeBron James play for the Miami Heat in 2026-27</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.995</td><td class='pos'>0.50¢</td><td>$0.22</td><td>✓</td><td>$72,103</td></tr><tr><td class='l'>Will Bitcoin reach $66,000 July 13-19?</td><td>crypto</td><td><span class='pill t2'>good</span></td><td>0.993</td><td class='pos'>0.70¢</td><td>$0.22</td><td>✓</td><td>$51,380</td></tr><tr><td class='l'>Bab el-Mandeb Strait effectively closed by July 31?</td><td>other</td><td><span class='pill t2'>good</span></td><td>0.994</td><td class='pos'>0.60¢</td><td>$0.21</td><td>✓</td><td>$57,356</td></tr><tr><td class='l'>Will WTI Crude Oil (WTI) hit (HIGH) $100 in July?</td><td>finance</td><td><span class='pill t2'>good</span></td><td>0.993</td><td class='pos'>0.70¢</td><td>$0.18</td><td>✓</td><td>$43,051</td></tr><tr><td class='l'>Will WTI Crude Oil (WTI) hit (HIGH) $115 in July?</td><td>finance</td><td><span class='pill t2'>good</span></td><td>0.995</td><td class='pos'>0.50¢</td><td>$0.05</td><td>✓</td><td>$62,355</td></tr><tr><td class='l'>Will LeBron James play for the Minnesota Timberwolve</td><td>sports</td><td><span class='pill t2'>good</span></td><td>0.996</td><td class='pos'>0.40¢</td><td>$0.05</td><td>✓</td><td>$67,231</td></tr></tbody></table></div>
+
+<h2>Paper-trade simulation <span class='mut' style='font-size:13px'>(resting maker quotes replayed against real taker flow)</span></h2><div class='scroll'><table><thead><tr><th class='l'>Market</th><th>Quotes Y+N</th><th>Margin</th><th>Fill Y/N</th><th>Pairs</th><th>Merge P&amp;L</th><th>Rebates</th><th>Inv. P&amp;L</th><th>Net</th></tr></thead><tbody><tr><td class='l'>Will the Boston Red Sox hit the most home runs i</td><td>0.003+0.970</td><td>2.70¢</td><td>0/0</td><td>0</td><td class='pos'>$0.00</td><td class='pos'>$0.00</td><td class='mut'>—</td><td class='mut'>$0.00</td></tr><tr><td class='l'>Will Mjallby AIF win on 2026-07-17?</td><td>0.400+0.600</td><td>0.00¢</td><td>0/200</td><td>0</td><td class='pos'>$0.00</td><td class='pos'>$0.18</td><td class='neg'>$-2.00</td><td class='neg'>$-1.82</td></tr><tr><td class='l'>Will WTI Crude Oil (WTI) hit (HIGH) $95 in July?</td><td>0.181+0.803</td><td>1.60¢</td><td>200/0</td><td>0</td><td class='pos'>$0.00</td><td class='pos'>$0.15</td><td class='neg'>$-0.20</td><td class='neg'>$-0.05</td></tr><tr><td class='l'>Iasi Open: Tamara Zidansek vs Petra Marcinko</td><td>0.570+0.420</td><td>1.00¢</td><td>200/0</td><td>0</td><td class='pos'>$0.00</td><td class='pos'>$0.18</td><td class='neg'>$0.00</td><td class='pos'>$0.18</td></tr><tr><td class='l'>Will the Miami Marlins hit the most home runs in</td><td>0.003+0.962</td><td>3.50¢</td><td>0/0</td><td>0</td><td class='pos'>$0.00</td><td class='pos'>$0.00</td><td class='mut'>—</td><td class='mut'>$0.00</td></tr><tr><td class='l'>Will the Cleveland Guardians hit the most home r</td><td>0.003+0.964</td><td>3.30¢</td><td>0/0</td><td>0</td><td class='pos'>$0.00</td><td class='pos'>$0.00</td><td class='mut'>—</td><td class='mut'>$0.00</td></tr></tbody></table></div><p class='mut'>Matched pairs merge to $1 risk-free; leftover one-sided fills are directional inventory marked at best bid — that column is the adverse-selection cost.</p>
+
+<h2>Honest feasibility</h2>
+<div class=warn>
+<p style='margin-top:0'><b>The "$50k/month" is marketing.</b> The viral post it traces to is actually a <i>taker</i> speed-arb with unverifiable numbers.
+Peer-reviewed data (arXiv 2508.03474 / 2605.00864) shows real Polymarket arb is <b>liquidity-bounded to retail scale</b>: opportunities live ~3–16s and ~77% cap near ~15 shares.</p>
+<p style='margin-bottom:0'>What's <b>real</b>: makers pay 0 fees, earn 15–25% rebates + separate liquidity rewards, and CTF split/merge/convert give guaranteed $1 exits.
+Realistic outcome is a capital- and vigilance-intensive market-making operation on liquid non-crypto books returning <b>low-single-digit % monthly</b> on deployed capital — not a passive money machine.
+Top risks: adverse selection (worsened by the Feb 2026 cancel-window removal), one-sided fills, capital lockup, and Polygon gas per CTF op.</p>
+</div>
+
+<div class=foot>
+Data: Polymarket Gamma + CLOB + Data public APIs (read-only). Fee/rebate/CTF math verified against docs.polymarket.com &amp; on-chain contracts.
+This is a research & simulation tool — not financial advice, and it never places an order.
+</div>
+</div></body></html>

@@ -1,0 +1,42 @@
+name: refresh dashboard
+
+# Regenerates the live scan/paper dashboard (index.html) on a schedule so the
+# published GitHub Pages site stays current. Read-only: only public Polymarket
+# APIs are called; no secrets, no wallet, no orders.
+on:
+  schedule:
+    - cron: "17 */2 * * *"   # every 2 hours
+  workflow_dispatch: {}       # manual "Run workflow" button
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-dashboard
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Regenerate dashboard
+        run: |
+          python -m polyarb report \
+            --max-markets 300 --max-events 100 --min-liquidity 4000 \
+            --size 200 --hours 8 --paper-n 6 --top 12 --out index.html
+      - name: Commit if changed
+        run: |
+          git config user.name  "poly-arb bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "refresh dashboard $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
