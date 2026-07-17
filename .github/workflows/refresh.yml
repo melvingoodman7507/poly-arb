@@ -24,16 +24,16 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install requests
-      - name: Regenerate dashboard
+      - name: Regenerate scanner dashboard
         run: |
           python -m polyarb report \
             --max-markets 300 --max-events 100 --min-liquidity 4000 \
-            --size 200 --hours 8 --paper-n 6 --top 12 --out index.html
+            --size 200 --hours 8 --paper-n 6 --top 12 --out scanner.html
       - name: Commit if changed
         run: |
           git config user.name  "poly-arb bot"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html
+          git add scanner.html
           if git diff --cached --quiet; then
             echo "no change"
           else
