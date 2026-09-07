@@ -144,8 +144,10 @@ def scan_binary(m: Market, yes: Optional[Book], no: Optional[Book], cfg: ScanCon
                 r_elig = (m.rewards_max_spread > 0 and
                           fees.reward_eligible(s_y, cfg.sim_shares, m.rewards_max_spread, m.rewards_min_size) and
                           fees.reward_eligible(s_n, cfg.sim_shares, m.rewards_max_spread, m.rewards_min_size))
-                r_score = min(fees.reward_score(s_y, cfg.sim_shares, m.rewards_max_spread),
-                              fees.reward_score(s_n, cfg.sim_shares, m.rewards_max_spread)) if r_elig else 0.0
+                r_score = fees.reward_qmin(
+                    fees.reward_score(s_y, cfg.sim_shares, m.rewards_max_spread),
+                    fees.reward_score(s_n, cfg.sim_shares, m.rewards_max_spread),
+                    mid_y) if r_elig else 0.0
                 # Tier: mirage < moderate < good < prime. Reward-eligible + tight + liquid = prime.
                 tight = combined_spread <= 3 * tick
                 if margin > cfg.max_realistic_margin:

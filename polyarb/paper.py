@@ -174,8 +174,10 @@ class PaperMaker:
         r_elig = (m.rewards_max_spread > 0 and
                   fees.reward_eligible(sy, size, m.rewards_max_spread, m.rewards_min_size) and
                   fees.reward_eligible(sn, size, m.rewards_max_spread, m.rewards_min_size))
-        r_score = min(fees.reward_score(sy, size, m.rewards_max_spread),
-                      fees.reward_score(sn, size, m.rewards_max_spread)) if r_elig else 0.0
+        r_score = fees.reward_qmin(
+            fees.reward_score(sy, size, m.rewards_max_spread),
+            fees.reward_score(sn, size, m.rewards_max_spread),
+            mid_y) if r_elig else 0.0
 
         return PaperResult(
             question=m.question, category=m.category, quote_yes=qy, quote_no=qn, size=size,

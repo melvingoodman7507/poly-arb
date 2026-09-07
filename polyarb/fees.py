@@ -283,11 +283,40 @@ def reward_score(spread_from_mid_cents: float, size: float, max_spread_cents: fl
     return ((max_spread_cents - spread_from_mid_cents) / max_spread_cents) ** 2 * size
 
 
+# --- how Polymarket COMBINES the two sides (verified against its own docs, 2026-07-28) ---
+# Q_one/Q_two are the two mirrored liquidity sums (bids on the token + asks on the complement,
+# and vice versa). They are NOT combined with a plain min():
+#   midpoint in [0.10, 0.90]  ->  Qmin = max( min(Q1,Q2), max(Q1,Q2) / 3 )   <- single-sided still scores
+#   midpoint outside that band ->  Qmin = min(Q1,Q2)                          <- single-sided scores ZERO
+# We previously applied the TAIL rule everywhere, which zeroes one-sided setups across the bulk of the
+# market universe. Conservative (it understates, so it never invented an opportunity) but it under-ranked
+# every one-sided quote in the 0.10-0.90 band, which is most markets.
+REWARD_INBAND_LO, REWARD_INBAND_HI = 0.10, 0.90
+REWARD_SINGLE_SIDED_DIVISOR = 3.0
+
+
+def reward_qmin(q_one: float, q_two: float, midpoint: float) -> float:
+    """Combine the two side-scores the way Polymarket actually does."""
+    q_one = max(0.0, float(q_one or 0.0))
+    q_two = max(0.0, float(q_two or 0.0))
+    if REWARD_INBAND_LO <= float(midpoint) <= REWARD_INBAND_HI:
+        return max(min(q_one, q_two), max(q_one, q_two) / REWARD_SINGLE_SIDED_DIVISOR)
+    return min(q_one, q_two)
+
+
 def _selftest():
     # Known docs examples (crypto feeRate 0.07)
     assert abs(taker_fee(100, 0.50, "crypto") - 1.75) < 1e-9, taker_fee(100, 0.50, "crypto")
     assert abs(taker_fee(100, 0.30, "crypto") - 1.47) < 1e-9, taker_fee(100, 0.30, "crypto")
     assert abs(taker_fee(100, 0.70, "crypto") - 1.47) < 1e-9  # symmetric
+    # reward side-combination (Polymarket's max-of-min rule)
+    assert abs(reward_qmin(90.0, 30.0, 0.50) - 30.0) < 1e-9          # two-sided -> the min
+    assert abs(reward_qmin(90.0, 0.0, 0.50) - 30.0) < 1e-9           # one-sided IN band -> max/3
+    assert reward_qmin(90.0, 0.0, 0.95) == 0.0                       # one-sided in TAIL -> zero
+    assert reward_qmin(90.0, 0.0, 0.05) == 0.0                       # other tail -> zero
+    assert abs(reward_qmin(60.0, 60.0, 0.50) - 60.0) < 1e-9          # balanced -> unchanged
+    assert abs(reward_qmin(90.0, 0.0, 0.10) - 30.0) < 1e-9           # band edge is INclusive
+    assert abs(reward_qmin(90.0, 0.0, 0.90) - 30.0) < 1e-9
     # Politics max ~ $1.00 per 100 shares at 0.5
     assert abs(taker_fee(100, 0.50, "politics") - 1.00) < 1e-9
     # Dynamic form with exponent=1 must equal the linear category fee

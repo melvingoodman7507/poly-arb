@@ -5,3 +5,16 @@ __pycache__/
 poly-arb-report.html
 scratchpad/
 CLAUDE.md
+
+# --- LIVE TRADING MODULE: never publish to the public scanner repo ---
+live/
+*.key
+*.pem
+.env
+*.env
+secrets*.json
+creds*.json
+*wallet*.json
+state/
+*.sqlite
+*.db
